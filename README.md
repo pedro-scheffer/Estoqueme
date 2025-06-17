@@ -1,6 +1,6 @@
 #  Estoqueme
 
-##  📌 Status do Projeto[
+##  📌 Status do Projeto
 🚧  Em desenvolvimento
 
 ##  💻  Tecnologias Utilizadas
