@@ -19,12 +19,11 @@
 - Pedro
 
 ## 🎯 Objetivo do Software
-O sistema tem como objetivo gerenciar o controle de estoque e vendas de uma empresa, facilitando o registro, atualização e consulta de produtos, bem como a realização de vendas com controle de entrada e saída de mercadorias.
+O sistema tem como objetivo gerenciar o controle de estoque, facilitando o registro, atualização e consulta de produtos.
 
 ## ✅ Funcionalidades do Sistema
 - Cadastro de produtos no estoque  
-- Atualização de quantidade em estoque  
-- Registro de vendas com cálculo automático  
+- Atualização de quantidade em estoque
 - Consulta e listagem de produtos disponíveis  
-- Relatórios simples de vendas realizadas  
+- Relatórios simples de quantidade de produtos que entraram e saíram do estoque  
 - Login para administradores do sistema
