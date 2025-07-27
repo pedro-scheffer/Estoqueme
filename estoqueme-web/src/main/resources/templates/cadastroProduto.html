@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estoqueme - Cadastrar Produto</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            transition: width 0.3s ease;
+            flex-shrink: 0;
+            height: 100vh;
+            box-sizing: border-box;
+            position: sticky;
+            top: 0;
+        }
+        .sidebar.collapsed {
+            width: 60px;
+        }
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .sidebar-header .logo-placeholder {
+            width: 40px;
+            height: 40px;
+            background-color: #e0e0e0;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.6em;
+            color: #666;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .sidebar-header .logo-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .sidebar-header h2 {
+            color: white;
+            margin: 0 0 0 15px;
+            font-size: 1.5em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar.collapsed .sidebar-header h2 {
+            display: none;
+        }
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 5px;
+            transition: transform 0.3s ease;
+        }
+        .sidebar.collapsed .toggle-btn {
+            transform: rotate(180deg);
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar ul li {
+            margin-bottom: 15px;
+        }
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+        .sidebar ul li a:hover {
+            background-color: #34495e;
+        }
+        .sidebar ul li a .icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+            flex-shrink: 0;
+        }
+        .sidebar.collapsed ul li a span {
+            display: none;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+            transition: margin-left 0.3s ease;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .user-info {
+            font-weight: 600;
+            color: #555;
+            transition: color 0.3s ease;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-top: 20px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 2em;
+            transition: color 0.3s ease;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .input-group {
+            margin-bottom: 0; /* Removido margin-bottom padrão */
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            width: calc(100% - 24px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1em;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease, color 0.3s ease;
+        }
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .full-width {
+            grid-column: 1 / -1; /* Ocupa todas as colunas */
+        }
+        button[type="submit"] {
+            background-image: linear-gradient(to right, #28a745 0%, #218838 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
+            width: 100%;
+            margin-top: 20px;
+        }
+        button[type="submit"]:hover {
+            background-image: linear-gradient(to right, #218838 0%, #28a745 100%);
+            box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
+            transform: translateY(-2px);
+        }
+        .message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            text-align: center;
+        }
+        .error-message {
+            color: #dc3545;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #2c2c2c;
+            color: #e0e0e0;
+        }
+        body.dark-mode .sidebar {
+            background-color: #3a3a3a;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.4);
+        }
+        body.dark-mode .sidebar-header h2 {
+            color: #f0f0f0;
+        }
+        body.dark-mode .sidebar ul li a {
+            color: #e0e0e0;
+        }
+        body.dark-mode .sidebar ul li a:hover {
+            background-color: #4c4c4c;
+        }
+        body.dark-mode .user-info {
+            color: #d0d0d0;
+        }
+        body.dark-mode .container {
+            background-color: #3a3a3a;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        body.dark-mode h1 {
+            color: #f0f0f0;
+        }
+        body.dark-mode .input-group label {
+            color: #d0d0d0;
+        }
+        body.dark-mode .input-group input,
+        body.dark-mode .input-group select,
+        body.dark-mode .input-group textarea {
+            background-color: #444;
+            color: #eee;
+            border-color: #666;
+        }
+        body.dark-mode .input-group input:focus,
+        body.dark-mode .input-group select:focus,
+        body.dark-mode .input-group textarea:focus {
+            border-color: #82caff;
+            box-shadow: 0 0 0 3px rgba(130, 202, 255, 0.35);
+        }
+        body.dark-mode button[type="submit"] {
+            background-image: linear-gradient(to right, #218838 0%, #28a745 100%);
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
+        }
+        body.dark-mode button[type="submit"]:hover {
+            background-image: linear-gradient(to right, #28a745 0%, #218838 100%);
+            box-shadow: 0 6px 15px rgba(40, 167, 69, 0.5);
+        }
+        body.dark-mode .message {
+            background-color: #4a6d52;
+            color: #d4edda;
+            border-color: #6cb37c;
+        }
+        body.dark-mode .error-message {
+            color: #c05050;
+        }
+        body.dark-mode .theme-toggle button {
+            background-color: #555;
+            color: #eee;
+            border: 1px solid #777;
+        }
+        body.dark-mode .theme-toggle button:hover {
+            background-color: #666;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+                padding: 15px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .sidebar.collapsed {
+                width: 100%;
+            }
+            .sidebar-header {
+                margin-bottom: 15px;
+            }
+            .sidebar.collapsed .sidebar-header h2 {
+                display: block;
+            }
+            .sidebar.collapsed .toggle-btn {
+                transform: none;
+            }
+            .sidebar ul {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .sidebar.collapsed ul li {
+                margin-bottom: 0;
+                margin-right: 10px;
+            }
+            .sidebar.collapsed ul li a {
+                padding: 8px 10px;
+            }
+            .sidebar.collapsed ul li a .icon {
+                margin-right: 0;
+            }
+            .sidebar.collapsed ul li a span {
+                display: block;
+                font-size: 0.8em;
+                text-align: center;
+            }
+            .main-content {
+                padding: 20px;
+            }
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .user-info {
+                margin-bottom: 10px;
+            }
+            .theme-toggle {
+                position: static;
+                text-align: right;
+                margin-bottom: 15px;
+            }
+            .form-grid {
+                grid-template-columns: 1fr; /* Uma coluna em telas pequenas */
+            }
+        }
+    </style>
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-placeholder">
+                <img src="https://placehold.co/40x40/2c3e50/ffffff?text=LOGO" alt="Logo">
+            </div>
+            <h2>Estoqueme</h2>
+            <button class="toggle-btn" id="sidebar-toggle-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <ul>
+            <li><a href="/dashboard"><span class="icon"><i class="fas fa-chart-line"></i></span> <span>Dashboard</span></a></li>
+            <li><a href="/cadastro-produto"><span class="icon"><i class="fas fa-box"></i></span> <span>Cadastrar Produto</span></a></li>
+            <li><a href="/deposito-retirada"><span class="icon"><i class="fas fa-exchange-alt"></i></span> <span>Depósito/Retirada</span></a></li>
+            <li><a href="#" id="logout-btn"><span class="icon"><i class="fas fa-sign-out-alt"></i></span> <span>Sair</span></a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="header-content">
+            <div class="user-info">
+                Usuário: <span id="logged-in-user">Teste</span>
+            </div>
+            <div class="theme-toggle">
+                <button id="theme-toggle-btn">Alternar Tema</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <h1>Cadastro de Produtos</h1>
+            <div id="message-area" class="message" style="display:none;"></div>
+
+            <form id="product-registration-form">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label for="product-name">Nome do Produto:</label>
+                        <input type="text" id="product-name" name="productName" required>
+                        <p class="error-message" id="error-product-name" style="display:none;">Nome do produto é obrigatório.</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="product-code">Código:</label>
+                        <input type="text" id="product-code" name="productCode" required>
+                        <p class="error-message" id="error-product-code" style="display:none;">Código é obrigatório.</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="quantity">Quantidade:</label>
+                        <input type="number" id="quantity" name="quantity" min="0" required>
+                        <p class="error-message" id="error-quantity" style="display:none;">Quantidade deve ser um número positivo.</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="last-purchase-price">Preço Unitário Última Compra (R$):</label>
+                        <input type="number" id="last-purchase-price" name="lastPurchasePrice" step="0.01" min="0" required>
+                        <p class="error-message" id="error-last-purchase-price" style="display:none;">Preço de compra é obrigatório e deve ser positivo.</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="average-price">Preço Médio (R$):</label>
+                        <input type="number" id="average-price" name="averagePrice" step="0.01" min="0" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label for="profit-percentage">Margem de Lucro (%):</label>
+                        <input type="number" id="profit-percentage" name="profitPercentage" min="0" max="100" required>
+                        <p class="error-message" id="error-profit-percentage" style="display:none;">Margem de lucro deve ser entre 0 e 100.</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="sale-price">Preço de Venda (R$):</label>
+                        <input type="number" id="sale-price" name="salePrice" step="0.01" min="0" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label for="product-type">Tipo de Produto:</label>
+                        <select id="product-type" name="productType" required>
+                            <option value="">Selecione</option>
+                            <option value="eletronico">Eletrônico</option>
+                            <option value="vestuario">Vestuário</option>
+                            <option value="alimento">Alimento</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                        <p class="error-message" id="error-product-type" style="display:none;">Tipo de produto é obrigatório.</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="brand">Marca:</label>
+                        <input type="text" id="brand" name="brand" required>
+                        <p class="error-message" id="error-brand" style="display:none;">Marca é obrigatória.</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="category">Categoria:</label>
+                        <input type="text" id="category" name="category" required>
+                        <p class="error-message" id="error-category" style="display:none;">Categoria é obrigatória.</p>
+                    </div>
+                    <div class="input-group full-width">
+                        <label for="description">Descrição:</label>
+                        <textarea id="description" name="description" rows="4"></textarea>
+                    </div>
+                </div>
+                <button type="submit">Cadastrar Produto</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Funções de Cookies (reutilizáveis)
+        function setCookie(name, value, days) {
+            var expires = "";
+            if (days) {
+                var date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/";
+        }
+
+        function getCookie(name) {
+            var nameEQ = name + "=";
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        // Função para aplicar o tema
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                $('body').addClass('dark-mode');
+            } else {
+                $('body').removeClass('dark-mode');
+            }
+        }
+
+        // Lógica de Tema
+        $(document).ready(function() {
+            var savedTheme = getCookie('theme');
+            if (savedTheme) {
+                applyTheme(savedTheme);
+            } else {
+                setCookie('theme', 'light', 365); // Tema padrão: claro
+            }
+
+            $('#theme-toggle-btn').on('click', function() {
+                var currentTheme = getCookie('theme');
+                var newTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+                setCookie('theme', newTheme, 365);
+                applyTheme(newTheme);
+            });
+
+            // Lógica do Logout (apenas para simulação, pois não há login real)
+            $('#logout-btn').on('click', function(event) {
+                event.preventDefault();
+                window.location.href = '/dashboard'; // Redireciona para a página inicial (Dashboard)
+                alert('Simulação de "Sair" - No projeto real, isso faria logout.');
+            });
+
+            // Lógica da Sidebar
+            $('#sidebar-toggle-btn').on('click', function() {
+                $('#sidebar').toggleClass('collapsed');
+            });
+
+            // Validação e Cálculo de Preço
+            function validateField(fieldId, errorId, validationFn, errorMessage) {
+                var field = $('#' + fieldId);
+                var error = $('#' + errorId);
+                if (!validationFn(field.val())) {
+                    error.text(errorMessage).show();
+                    field.addClass('is-invalid');
+                    return false;
+                } else {
+                    error.hide();
+                    field.removeClass('is-invalid');
+                    return true;
+                }
+            }
+
+            function isNotEmpty(value) {
+                return value.trim() !== '';
+            }
+
+            function isPositiveNumber(value) {
+                return parseFloat(value) > 0;
+            }
+
+            function isPercentage(value) {
+                var num = parseInt(value);
+                return num >= 0 && num <= 100;
+            }
+
+            function calculatePrices() {
+                var lastPurchasePrice = parseFloat($('#last-purchase-price').val());
+                var profitPercentage = parseFloat($('#profit-percentage').val());
+
+                if (!isNaN(lastPurchasePrice) && lastPurchasePrice >= 0 &&
+                    !isNaN(profitPercentage) && profitPercentage >= 0 && profitPercentage <= 100) {
+
+                    var averagePrice = lastPurchasePrice; // Por enquanto, preço médio = última compra
+                    var salePrice = averagePrice * (1 + (profitPercentage / 100));
+
+                    $('#average-price').val(averagePrice.toFixed(2));
+                    $('#sale-price').val(salePrice.toFixed(2));
+                } else {
+                    $('#average-price').val('');
+                    $('#sale-price').val('');
+                }
+            }
+
+            $('#last-purchase-price, #profit-percentage').on('input', calculatePrices);
+
+            // Validação do Formulário de Cadastro de Produtos
+            $('#product-registration-form').submit(function(event) {
+                event.preventDefault();
+
+                var isValid = true;
+
+                isValid = validateField('product-name', 'error-product-name', isNotEmpty, 'Nome do produto é obrigatório.') && isValid;
+                isValid = validateField('product-code', 'error-product-code', isNotEmpty, 'Código é obrigatório.') && isValid;
+                isValid = validateField('quantity', 'error-quantity', isPositiveNumber, 'Quantidade deve ser um número positivo.') && isValid;
+                isValid = validateField('last-purchase-price', 'error-last-purchase-price', isPositiveNumber, 'Preço de compra é obrigatório e deve ser positivo.') && isValid;
+                isValid = validateField('profit-percentage', 'error-profit-percentage', isPercentage, 'Margem de lucro deve ser entre 0 e 100.') && isValid;
+                isValid = validateField('product-type', 'error-product-type', isNotEmpty, 'Tipo de produto é obrigatório.') && isValid;
+                isValid = validateField('brand', 'error-brand', isNotEmpty, 'Marca é obrigatória.') && isValid;
+                isValid = validateField('category', 'error-category', isNotEmpty, 'Categoria é obrigatória.') && isValid;
+
+                if (isValid) {
+                    var productData = {
+                        productName: $('#product-name').val(),
+                        productCode: $('#product-code').val(),
+                        quantity: parseInt($('#quantity').val()),
+                        lastPurchasePrice: parseFloat($('#last-purchase-price').val()),
+                        averagePrice: parseFloat($('#average-price').val()),
+                        profitPercentage: parseInt($('#profit-percentage').val()),
+                        salePrice: parseFloat($('#sale-price').val()),
+                        productType: $('#product-type').val(),
+                        brand: $('#brand').val(),
+                        category: $('#category').val(),
+                        description: $('#description').val()
+                    };
+
+                    // Simula o envio de dados (sem backend)
+                    console.log('Produto a ser cadastrado:', productData);
+                    $('#message-area').text('Produto "' + productData.productName + '" cadastrado com sucesso!').css('background-color', '#d4edda').css('color', '#155724').show();
+                    $('#product-registration-form')[0].reset(); // Limpa o formulário
+                    $('#average-price').val(''); // Limpa campos calculados
+                    $('#sale-price').val('');
+                    $('.error-message').hide(); // Esconde mensagens de erro
+                } else {
+                    $('#message-area').text('Por favor, corrija os erros no formulário.').css('background-color', '#f8d7da').css('color', '#721c24').show();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estoqueme - Depósito/Retirada</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            transition: width 0.3s ease;
+            flex-shrink: 0;
+            height: 100vh;
+            box-sizing: border-box;
+            position: sticky;
+            top: 0;
+        }
+        .sidebar.collapsed {
+            width: 60px;
+        }
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .sidebar-header .logo-placeholder {
+            width: 40px;
+            height: 40px;
+            background-color: #e0e0e0;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.6em;
+            color: #666;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .sidebar-header .logo-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .sidebar-header h2 {
+            color: white;
+            margin: 0 0 0 15px;
+            font-size: 1.5em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar.collapsed .sidebar-header h2 {
+            display: none;
+        }
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 5px;
+            transition: transform 0.3s ease;
+        }
+        .sidebar.collapsed .toggle-btn {
+            transform: rotate(180deg);
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar ul li {
+            margin-bottom: 15px;
+        }
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+        .sidebar ul li a:hover {
+            background-color: #34495e;
+        }
+        .sidebar ul li a .icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+            flex-shrink: 0;
+        }
+        .sidebar.collapsed ul li a span {
+            display: none;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+            transition: margin-left 0.3s ease;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .user-info {
+            font-weight: 600;
+            color: #555;
+            transition: color 0.3s ease;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-top: 20px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 2em;
+            transition: color 0.3s ease;
+        }
+        .operation-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .operation-buttons button {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            background-color: white;
+            color: #007bff;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .operation-buttons button.active {
+            background-color: #007bff;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+        }
+        .operation-buttons button:hover:not(.active) {
+            background-color: #e6f2ff;
+        }
+        .operation-section {
+            display: none; /* Escondido por padrão */
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        .operation-section.active {
+            display: block;
+        }
+        .search-bar {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .search-bar input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease, color 0.3s ease;
+        }
+        .search-bar input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+        .search-bar button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+        .search-bar button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: left;
+            transition: border-color 0.3s ease;
+        }
+        th {
+            background-color: #f7f7f7;
+            color: #555;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        tr:nth-child(even) {
+            background-color: #fcfcfc;
+            transition: background-color 0.3s ease;
+        }
+        tr:hover {
+            background-color: #e9e9e9;
+            cursor: pointer; /* Indica que a linha é clicável */
+            transition: background-color 0.2s ease;
+        }
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+        }
+        .selected-product-info {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px dashed #007bff;
+            border-radius: 8px;
+            background-color: #e6f2ff;
+            color: #0056b3;
+            font-weight: 600;
+            display: none; /* Escondido por padrão */
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        .input-group input,
+        .input-group select {
+            width: calc(100% - 24px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1em;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease, color 0.3s ease;
+        }
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+        .action-form button {
+            background-image: linear-gradient(to right, #28a745 0%, #218838 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
+            width: 100%;
+            margin-top: 10px;
+        }
+        .action-form button:hover {
+            background-image: linear-gradient(to right, #218838 0%, #28a745 100%);
+            box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
+            transform: translateY(-2px);
+        }
+        .discount-section {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none; /* Escondido por padrão */
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .discount-section label {
+            font-weight: normal;
+            margin-bottom: 5px;
+        }
+        .discount-section input, .discount-section select {
+            margin-bottom: 10px;
+        }
+        .error-message {
+            color: #dc3545;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+        .message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #2c2c2c;
+            color: #e0e0e0;
+        }
+        body.dark-mode .sidebar {
+            background-color: #3a3a3a;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.4);
+        }
+        body.dark-mode .sidebar-header h2 {
+            color: #f0f0f0;
+        }
+        body.dark-mode .sidebar ul li a {
+            color: #e0e0e0;
+        }
+        body.dark-mode .sidebar ul li a:hover {
+            background-color: #4c4c4c;
+        }
+        body.dark-mode .user-info {
+            color: #d0d0d0;
+        }
+        body.dark-mode .container {
+            background-color: #3a3a3a;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        body.dark-mode h1 {
+            color: #f0f0f0;
+        }
+        body.dark-mode .operation-buttons button {
+            border-color: #0056b3;
+            background-color: #444;
+            color: #82caff;
+        }
+        body.dark-mode .operation-buttons button.active {
+            background-color: #0056b3;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.4);
+        }
+        body.dark-mode .operation-buttons button:hover:not(.active) {
+            background-color: #555;
+        }
+        body.dark-mode .operation-section {
+            border-color: #555;
+        }
+        body.dark-mode .search-bar input {
+            background-color: #444;
+            color: #eee;
+            border-color: #666;
+        }
+        body.dark-mode .search-bar input:focus {
+            border-color: #82caff;
+            box-shadow: 0 0 0 3px rgba(130, 202, 255, 0.35);
+        }
+        body.dark-mode .search-bar button {
+            background-color: #0056b3;
+        }
+        body.dark-mode .search-bar button:hover {
+            background-color: #004085;
+        }
+        body.dark-mode table {
+            border-color: #555;
+        }
+        body.dark-mode th, body.dark-mode td {
+            border-color: #555;
+        }
+        body.dark-mode th {
+            background-color: #4a4a4a;
+            color: #d0d0d0;
+        }
+        body.dark-mode tr:nth-child(even) {
+            background-color: #424242;
+        }
+        body.dark-mode tr:hover {
+            background-color: #505050;
+        }
+        body.dark-mode .no-results {
+            color: #b0b0b0;
+        }
+        body.dark-mode .selected-product-info {
+            border-color: #0056b3;
+            background-color: #424242;
+            color: #82caff;
+        }
+        body.dark-mode .input-group label {
+            color: #d0d0d0;
+        }
+        body.dark-mode .input-group input,
+        body.dark-mode .input-group select {
+            background-color: #444;
+            color: #eee;
+            border-color: #666;
+        }
+        body.dark-mode .input-group input:focus,
+        body.dark-mode .input-group select:focus {
+            border-color: #82caff;
+            box-shadow: 0 0 0 3px rgba(130, 202, 255, 0.35);
+        }
+        body.dark-mode .action-form button {
+            background-image: linear-gradient(to right, #218838 0%, #28a745 100%);
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
+        }
+        body.dark-mode .action-form button:hover {
+            background-image: linear-gradient(to right, #28a745 0%, #218838 100%);
+            box-shadow: 0 6px 15px rgba(40, 167, 69, 0.5);
+        }
+        body.dark-mode .discount-section {
+            background-color: #424242;
+            border-color: #666;
+        }
+        body.dark-mode .error-message {
+            color: #c05050;
+        }
+        body.dark-mode .message {
+            background-color: #4a6d52;
+            color: #d4edda;
+            border-color: #6cb37c;
+        }
+        body.dark-mode .theme-toggle button {
+            background-color: #555;
+            color: #eee;
+            border: 1px solid #777;
+        }
+        body.dark-mode .theme-toggle button:hover {
+            background-color: #666;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+                padding: 15px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .sidebar.collapsed {
+                width: 100%;
+            }
+            .sidebar-header {
+                margin-bottom: 15px;
+            }
+            .sidebar.collapsed .sidebar-header h2 {
+                display: block;
+            }
+            .sidebar.collapsed .toggle-btn {
+                transform: none;
+            }
+            .sidebar ul {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .sidebar.collapsed ul li {
+                margin-bottom: 0;
+                margin-right: 10px;
+            }
+            .sidebar.collapsed ul li a {
+                padding: 8px 10px;
+            }
+            .sidebar.collapsed ul li a .icon {
+                margin-right: 0;
+            }
+            .sidebar.collapsed ul li a span {
+                display: block;
+                font-size: 0.8em;
+                text-align: center;
+            }
+            .main-content {
+                padding: 20px;
+            }
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .user-info {
+                margin-bottom: 10px;
+            }
+            .theme-toggle {
+                position: static;
+                text-align: right;
+                margin-bottom: 15px;
+            }
+            .operation-buttons {
+                flex-direction: column;
+            }
+            .search-bar {
+                flex-direction: column;
+            }
+            .search-bar button {
+                width: 100%;
+            }
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            tr {
+                border: 1px solid #e0e0e0;
+                margin-bottom: 15px;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            td {
+                border: none;
+                position: relative;
+                padding-left: 50%;
+                text-align: right;
+            }
+            td:before {
+                position: absolute;
+                top: 0;
+                left: 6px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                content: attr(data-label);
+                font-weight: 600;
+                text-align: left;
+            }
+            td:nth-of-type(1):before { content: "ID:"; }
+            td:nth-of-type(2):before { content: "Nome:"; }
+            td:nth-of-type(3):before { content: "Código:"; }
+            td:nth-of-type(4):before { content: "Quantidade:"; }
+            td:nth-of-type(5):before { content: "Preço Venda:"; }
+        }
+    </style>
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-placeholder">
+                <img src="https://placehold.co/40x40/2c3e50/ffffff?text=LOGO" alt="Logo">
+            </div>
+            <h2>Estoqueme</h2>
+            <button class="toggle-btn" id="sidebar-toggle-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <ul>
+            <li><a href="/dashboard"><span class="icon"><i class="fas fa-chart-line"></i></span> <span>Dashboard</span></a></li>
+            <li><a href="/cadastro-produto"><span class="icon"><i class="fas fa-box"></i></span> <span>Cadastrar Produto</span></a></li>
+            <li><a href="/deposito-retirada"><span class="icon"><i class="fas fa-exchange-alt"></i></span> <span>Depósito/Retirada</span></a></li>
+            <li><a href="#" id="logout-btn"><span class="icon"><i class="fas fa-sign-out-alt"></i></span> <span>Sair</span></a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="header-content">
+            <div class="user-info">
+                Usuário: <span id="logged-in-user">Teste</span>
+            </div>
+            <div class="theme-toggle">
+                <button id="theme-toggle-btn">Alternar Tema</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <h1>Depósito e Retirada de Produtos</h1>
+            <div id="message-area" class="message" style="display:none;"></div>
+
+            <div class="operation-buttons">
+                <button id="deposit-btn" class="active">Depósito</button>
+                <button id="withdraw-btn">Retirada</button>
+            </div>
+
+            <!-- Seção de Depósito -->
+            <div id="deposit-section" class="operation-section active">
+                <h2>Realizar Depósito</h2>
+                <div class="search-bar">
+                    <input type="text" id="deposit-search-input" placeholder="Pesquisar por nome ou ID...">
+                    <button id="deposit-search-btn">Pesquisar</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome do Produto</th>
+                            <th>Código</th>
+                            <th>Quantidade Atual</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deposit-product-table-body">
+                        <!-- Produtos para depósito -->
+                    </tbody>
+                </table>
+                <p id="deposit-no-results" class="no-results" style="display:none;">Nenhum produto encontrado.</p>
+
+                <div id="deposit-selected-product" class="selected-product-info" style="display:none;">
+                    Produto Selecionado: <span id="deposit-selected-product-name"></span> (ID: <span id="deposit-selected-product-id"></span>)
+                </div>
+
+                <form id="deposit-form" class="action-form" style="display:none;">
+                    <div class="input-group">
+                        <label for="deposit-quantity">Quantidade a Depositar:</label>
+                        <input type="number" id="deposit-quantity" name="depositQuantity" min="1" required>
+                        <p class="error-message" id="error-deposit-quantity" style="display:none;">Quantidade deve ser um número positivo.</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="deposit-purchase-price">Preço de Compra Unitário (R$):</label>
+                        <input type="number" id="deposit-purchase-price" name="depositPurchasePrice" step="0.01" min="0" required>
+                        <p class="error-message" id="error-deposit-purchase-price" style="display:none;">Preço de compra é obrigatório e deve ser positivo.</p>
+                    </div>
+                    <button type="submit">Confirmar Depósito</button>
+                </form>
+            </div>
+
+            <!-- Seção de Retirada -->
+            <div id="withdraw-section" class="operation-section">
+                <h2>Realizar Retirada</h2>
+                <div class="search-bar">
+                    <input type="text" id="withdraw-search-input" placeholder="Pesquisar por nome ou ID...">
+                    <button id="withdraw-search-btn">Pesquisar</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome do Produto</th>
+                            <th>Código</th>
+                            <th>Quantidade Atual</th>
+                        </tr>
+                    </thead>
+                    <tbody id="withdraw-product-table-body">
+                        <!-- Produtos para retirada -->
+                    </tbody>
+                </table>
+                <p id="withdraw-no-results" class="no-results" style="display:none;">Nenhum produto encontrado.</p>
+
+                <div id="withdraw-selected-product" class="selected-product-info" style="display:none;">
+                    Produto Selecionado: <span id="withdraw-selected-product-name"></span> (ID: <span id="withdraw-selected-product-id"></span>)
+                    <p>Preço Médio: R$ <span id="withdraw-average-price"></span></p>
+                    <p>Preço de Venda: R$ <span id="withdraw-sale-price"></span></p>
+                </div>
+
+                <form id="withdraw-form" class="action-form" style="display:none;">
+                    <div class="input-group">
+                        <label for="withdraw-quantity">Quantidade a Retirar:</label>
+                        <input type="number" id="withdraw-quantity" name="withdrawQuantity" min="1" required>
+                        <p class="error-message" id="error-withdraw-quantity" style="display:none;">Quantidade deve ser um número positivo e menor ou igual à quantidade atual.</p>
+                    </div>
+                    <div class="input-group">
+                        <input type="checkbox" id="apply-discount">
+                        <label for="apply-discount" style="display:inline-block; margin-left: 10px;">Aplicar Desconto</label>
+                    </div>
+
+                    <div id="discount-section" class="discount-section">
+                        <div class="input-group">
+                            <label for="discount-type">Tipo de Desconto:</label>
+                            <select id="discount-type" name="discountType">
+                                <option value="percentage">Percentual (%)</option>
+                                <option value="amount">Valor em Dinheiro (R$)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="discount-value">Valor do Desconto:</label>
+                            <input type="number" id="discount-value" name="discountValue" step="0.01" min="0">
+                            <p class="error-message" id="error-discount-value" style="display:none;">Valor do desconto inválido.</p>
+                        </div>
+                    </div>
+                    <button type="submit">Confirmar Retirada</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Funções de Cookies (reutilizáveis)
+        function setCookie(name, value, days) {
+            var expires = "";
+            if (days) {
+                var date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/";
+        }
+
+        function getCookie(name) {
+            var nameEQ = name + "=";
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        // Função para aplicar o tema
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                $('body').addClass('dark-mode');
+            } else {
+                $('body').removeClass('dark-mode');
+            }
+        }
+
+        // Lógica de Tema
+        $(document).ready(function() {
+            var savedTheme = getCookie('theme');
+            if (savedTheme) {
+                applyTheme(savedTheme);
+            } else {
+                setCookie('theme', 'light', 365); // Tema padrão: claro
+            }
+
+            $('#theme-toggle-btn').on('click', function() {
+                var currentTheme = getCookie('theme');
+                var newTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+                setCookie('theme', newTheme, 365);
+                applyTheme(newTheme);
+            });
+
+            // Lógica do Logout (apenas para simulação, pois não há login real)
+            $('#logout-btn').on('click', function(event) {
+                event.preventDefault();
+                window.location.href = '/dashboard'; // Redireciona para a página inicial (Dashboard)
+                alert('Simulação de "Sair" - No projeto real, isso faria logout.');
+            });
+
+            // Lógica da Sidebar
+            $('#sidebar-toggle-btn').on('click', function() {
+                $('#sidebar').toggleClass('collapsed');
+            });
+
+            // Dados de produtos de exemplo (mock)
+            var products = [
+                { id: 1, name: 'Teclado Mecânico', code: 'KM001', quantity: 50, price: 250.00, averagePrice: 200.00, salePrice: 250.00 },
+                { id: 2, name: 'Mouse Gamer RGB', code: 'MG002', quantity: 120, price: 120.50, averagePrice: 100.00, salePrice: 120.50 },
+                { id: 3, name: 'Monitor Ultrawide 29"', code: 'MU003', quantity: 30, price: 999.99, averagePrice: 800.00, salePrice: 999.99 },
+                { id: 4, name: 'Webcam Full HD', code: 'WH004', quantity: 80, price: 150.00, averagePrice: 120.00, salePrice: 150.00 },
+                { id: 5, name: 'Fone de Ouvido Bluetooth', code: 'FB005', quantity: 200, price: 85.75, averagePrice: 70.00, salePrice: 85.75 }
+            ];
+
+            var selectedProductId = null;
+            var selectedProductQuantity = 0;
+            var selectedProductSalePrice = 0;
+
+            // Função para renderizar a tabela de produtos
+            function renderProductTable(data, tableId, noResultsId) {
+                var tableBody = $('#' + tableId);
+                tableBody.empty();
+                if (data.length === 0) {
+                    $('#' + noResultsId).show();
+                    return;
+                }
+                $('#' + noResultsId).hide();
+
+                $.each(data, function(index, product) {
+                    var row = '<tr data-id="' + product.id + '" data-name="' + product.name + '" data-quantity="' + product.quantity + '" data-average-price="' + product.averagePrice + '" data-sale-price="' + product.salePrice + '">' +
+                        '<td data-label="ID">' + product.id + '</td>' +
+                        '<td data-label="Nome do Produto">' + product.name + '</td>' +
+                        '<td data-label="Código">' + product.code + '</td>' +
+                        '<td data-label="Quantidade Atual">' + product.quantity + '</td>' +
+                        '</tr>';
+                    tableBody.append(row);
+                });
+            }
+
+            // Lógica de seleção de produto na tabela
+            $(document).on('click', '#deposit-product-table-body tr, #withdraw-product-table-body tr', function() {
+                // Remove a seleção anterior
+                $('#deposit-product-table-body tr, #withdraw-product-table-body tr').removeClass('selected');
+                $(this).addClass('selected');
+
+                selectedProductId = $(this).data('id');
+                selectedProductQuantity = $(this).data('quantity');
+                selectedProductSalePrice = $(this).data('sale-price');
+
+                // Atualiza info de produto selecionado
+                $('#deposit-selected-product-name').text($(this).data('name'));
+                $('#deposit-selected-product-id').text(selectedProductId);
+                $('#deposit-selected-product').show();
+                $('#deposit-form').show();
+
+                $('#withdraw-selected-product-name').text($(this).data('name'));
+                $('#withdraw-selected-product-id').text(selectedProductId);
+                $('#withdraw-average-price').text($(this).data('average-price').toFixed(2));
+                $('#withdraw-sale-price').text(selectedProductSalePrice.toFixed(2));
+                $('#withdraw-selected-product').show();
+                $('#withdraw-form').show();
+            });
+
+            // Lógica de pesquisa/filtro
+            $('#deposit-search-btn').on('click', function() {
+                var searchTerm = $('#deposit-search-input').val().toLowerCase();
+                var filteredProducts = products.filter(function(product) {
+                    return product.name.toLowerCase().includes(searchTerm) ||
+                           String(product.id).includes(searchTerm);
+                });
+                renderProductTable(filteredProducts, 'deposit-product-table-body', 'deposit-no-results');
+            });
+
+            $('#withdraw-search-btn').on('click', function() {
+                var searchTerm = $('#withdraw-search-input').val().toLowerCase();
+                var filteredProducts = products.filter(function(product) {
+                    return product.name.toLowerCase().includes(searchTerm) ||
+                           String(product.id).includes(searchTerm);
+                });
+                renderProductTable(filteredProducts, 'withdraw-product-table-body', 'withdraw-no-results');
+            });
+
+            // Permite pesquisar ao pressionar Enter
+            $('#deposit-search-input').on('keypress', function(e) { if (e.which === 13) { $('#deposit-search-btn').click(); } });
+            $('#withdraw-search-input').on('keypress', function(e) { if (e.which === 13) { $('#withdraw-search-btn').click(); } });
+
+
+            // Inicializa as tabelas
+            renderProductTable(products, 'deposit-product-table-body', 'deposit-no-results');
+            renderProductTable(products, 'withdraw-product-table-body', 'withdraw-no-results');
+
+            // Lógica de alternar operações
+            $('#deposit-btn').on('click', function() {
+                $(this).addClass('active');
+                $('#withdraw-btn').removeClass('active');
+                $('#deposit-section').addClass('active');
+                $('#withdraw-section').removeClass('active');
+                // Reseta seleção e formulários
+                $('.selected-product-info').hide();
+                $('.action-form').hide();
+                $('.error-message').hide();
+                $('#deposit-product-table-body tr, #withdraw-product-table-body tr').removeClass('selected');
+                selectedProductId = null;
+            });
+
+            $('#withdraw-btn').on('click', function() {
+                $(this).addClass('active');
+                $('#deposit-btn').removeClass('active');
+                $('#withdraw-section').addClass('active');
+                $('#deposit-section').removeClass('active');
+                // Reseta seleção e formulários
+                $('.selected-product-info').hide();
+                $('.action-form').hide();
+                $('.error-message').hide();
+                $('#deposit-product-table-body tr, #withdraw-product-table-body tr').removeClass('selected');
+                selectedProductId = null;
+            });
+
+            // Lógica de desconto
+            $('#apply-discount').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#discount-section').slideDown();
+                } else {
+                    $('#discount-section').slideUp();
+                    $('#discount-value').val('');
+                    $('#error-discount-value').hide();
+                }
+            });
+
+            // Validação de campos
+            function validateField(fieldId, errorId, validationFn, errorMessage) {
+                var field = $('#' + fieldId);
+                var error = $('#' + errorId);
+                if (!validationFn(field.val())) {
+                    error.text(errorMessage).show();
+                    field.addClass('is-invalid');
+                    return false;
+                } else {
+                    error.hide();
+                    field.removeClass('is-invalid');
+                    return true;
+                }
+            }
+
+            function isPositiveNumber(value) {
+                return parseFloat(value) > 0;
+            }
+
+            function isNonNegativeNumber(value) {
+                return parseFloat(value) >= 0;
+            }
+
+            function isValidDiscount(value, type, salePrice) {
+                var num = parseFloat(value);
+                if (isNaN(num) || num < 0) return false;
+                if (type === 'percentage' && (num < 0 || num > 100)) return false;
+                if (type === 'amount' && num > salePrice) return false; // Desconto em dinheiro não pode ser maior que o preço de venda
+                return true;
+            }
+
+            // Submissão do formulário de Depósito
+            $('#deposit-form').submit(function(event) {
+                event.preventDefault();
+                if (!selectedProductId) {
+                    $('#message-area').text('Por favor, selecione um produto para depositar.').css('background-color', '#f8d7da').css('color', '#721c24').show();
+                    return;
+                }
+
+                var isValid = true;
+                isValid = validateField('deposit-quantity', 'error-deposit-quantity', isPositiveNumber, 'Quantidade deve ser um número positivo.') && isValid;
+                isValid = validateField('deposit-purchase-price', 'error-deposit-purchase-price', isPositiveNumber, 'Preço de compra é obrigatório e deve ser positivo.') && isValid;
+
+                if (isValid) {
+                    var depositQuantity = parseInt($('#deposit-quantity').val());
+                    var depositPrice = parseFloat($('#deposit-purchase-price').val());
+
+                    // Lógica de depósito (simulada)
+                    var productIndex = products.findIndex(p => p.id === selectedProductId);
+                    if (productIndex !== -1) {
+                        products[productIndex].quantity += depositQuantity;
+                        // Atualizar preço médio e de venda aqui seria lógica de backend
+                        $('#message-area').text('Depósito de ' + depositQuantity + ' unidades de "' + products[productIndex].name + '" realizado com sucesso!').css('background-color', '#d4edda').css('color', '#155724').show();
+                        renderProductTable(products, 'deposit-product-table-body', 'deposit-no-results');
+                        renderProductTable(products, 'withdraw-product-table-body', 'withdraw-no-results'); // Atualiza a outra tabela também
+                        $('#deposit-form')[0].reset();
+                        $('.selected-product-info').hide();
+                        $('#deposit-form').hide();
+                        $('.error-message').hide();
+                    }
+                } else {
+                    $('#message-area').text('Por favor, corrija os erros no formulário de depósito.').css('background-color', '#f8d7da').css('color', '#721c24').show();
+                }
+            });
+
+            // Submissão do formulário de Retirada
+            $('#withdraw-form').submit(function(event) {
+                event.preventDefault();
+                if (!selectedProductId) {
+                    $('#message-area').text('Por favor, selecione um produto para retirar.').css('background-color', '#f8d7da').css('color', '#721c24').show();
+                    return;
+                }
+
+                var isValid = true;
+                var withdrawQuantity = parseInt($('#withdraw-quantity').val());
+
+                // Validação da quantidade de retirada
+                if (isNaN(withdrawQuantity) || withdrawQuantity <= 0 || withdrawQuantity > selectedProductQuantity) {
+                    $('#error-withdraw-quantity').text('Quantidade deve ser um número positivo e menor ou igual à quantidade atual (' + selectedProductQuantity + ').').show();
+                    $('#withdraw-quantity').addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    $('#error-withdraw-quantity').hide();
+                    $('#withdraw-quantity').removeClass('is-invalid');
+                }
+
+                var applyDiscount = $('#apply-discount').is(':checked');
+                if (applyDiscount) {
+                    var discountType = $('#discount-type').val();
+                    var discountValue = $('#discount-value').val();
+                    isValid = validateField('discount-value', 'error-discount-value', function(val) {
+                        return isValidDiscount(val, discountType, selectedProductSalePrice);
+                    }, 'Valor do desconto inválido.') && isValid;
+                }
+
+                if (isValid) {
+                    // Lógica de retirada (simulada)
+                    var productIndex = products.findIndex(p => p.id === selectedProductId);
+                    if (productIndex !== -1) {
+                        products[productIndex].quantity -= withdrawQuantity;
+
+                        var finalPrice = selectedProductSalePrice;
+                        if (applyDiscount) {
+                            var discountVal = parseFloat($('#discount-value').val());
+                            if (discountType === 'percentage') {
+                                finalPrice = finalPrice * (1 - (discountVal / 100));
+                            } else { // amount
+                                finalPrice = finalPrice - discountVal;
+                            }
+                        }
+
+                        $('#message-area').text('Retirada de ' + withdrawQuantity + ' unidades de "' + products[productIndex].name + '" realizada com sucesso! Preço Final: R$ ' + finalPrice.toFixed(2)).css('background-color', '#d4edda').css('color', '#155724').show();
+                        renderProductTable(products, 'deposit-product-table-body', 'deposit-no-results');
+                        renderProductTable(products, 'withdraw-product-table-body', 'withdraw-no-results');
+                        $('#withdraw-form')[0].reset();
+                        $('#apply-discount').prop('checked', false).change(); // Desativa o desconto
+                        $('.selected-product-info').hide();
+                        $('#withdraw-form').hide();
+                        $('.error-message').hide();
+                    }
+                } else {
+                    $('#message-area').text('Por favor, corrija os erros no formulário de retirada.').css('background-color', '#f8d7da').css('color', '#721c24').show();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
