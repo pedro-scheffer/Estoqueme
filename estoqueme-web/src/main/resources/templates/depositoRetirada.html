@@ -625,12 +625,12 @@
                 <form id="deposit-form" class="action-form" style="display:none;">
                     <div class="input-group">
                         <label for="deposit-quantity">Quantidade a Depositar:</label>
-                        <input type="number" id="deposit-quantity" name="depositQuantity" min="1" required>
+                        <input type="number" id="deposit-quantity" name="quantidade" min="1" required>
                         <p class="error-message" id="error-deposit-quantity" style="display:none;">Quantidade deve ser um número positivo.</p>
                     </div>
                     <div class="input-group">
                         <label for="deposit-purchase-price">Preço de Compra Unitário (R$):</label>
-                        <input type="number" id="deposit-purchase-price" name="depositPurchasePrice" step="0.01" min="0" required>
+                        <input type="number" id="deposit-purchase-price" name="precoCompra" step="0.01" min="0" required>
                         <p class="error-message" id="error-deposit-purchase-price" style="display:none;">Preço de compra é obrigatório e deve ser positivo.</p>
                     </div>
                     <button type="submit">Confirmar Depósito</button>
@@ -668,7 +668,7 @@
                 <form id="withdraw-form" class="action-form" style="display:none;">
                     <div class="input-group">
                         <label for="withdraw-quantity">Quantidade a Retirar:</label>
-                        <input type="number" id="withdraw-quantity" name="withdrawQuantity" min="1" required>
+                        <input type="number" id="withdraw-quantity" name="quantidade" min="1" required>
                         <p class="error-message" id="error-withdraw-quantity" style="display:none;">Quantidade deve ser um número positivo e menor ou igual à quantidade atual.</p>
                     </div>
                     <div class="input-group">
@@ -756,35 +756,47 @@
                 $('#sidebar').toggleClass('collapsed');
             });
 
-            // Dados de produtos de exemplo (mock)
-            var products = [
-                { id: 1, name: 'Teclado Mecânico', code: 'KM001', quantity: 50, price: 250.00, averagePrice: 200.00, salePrice: 250.00 },
-                { id: 2, name: 'Mouse Gamer RGB', code: 'MG002', quantity: 120, price: 120.50, averagePrice: 100.00, salePrice: 120.50 },
-                { id: 3, name: 'Monitor Ultrawide 29"', code: 'MU003', quantity: 30, price: 999.99, averagePrice: 800.00, salePrice: 999.99 },
-                { id: 4, name: 'Webcam Full HD', code: 'WH004', quantity: 80, price: 150.00, averagePrice: 120.00, salePrice: 150.00 },
-                { id: 5, name: 'Fone de Ouvido Bluetooth', code: 'FB005', quantity: 200, price: 85.75, averagePrice: 70.00, salePrice: 85.75 }
-            ];
-
             var selectedProductId = null;
             var selectedProductQuantity = 0;
             var selectedProductSalePrice = 0;
 
-            // Função para renderizar a tabela de produtos
-            function renderProductTable(data, tableId, noResultsId) {
+            // Função para buscar e renderizar produtos da API para tabelas de Depósito/Retirada
+            function fetchAndRenderProductsForOperations(tableId, noResultsId, searchTerm = '') {
+                let url = '/api/produtos';
+                if (searchTerm) {
+                    url += '/search?term=' + encodeURIComponent(searchTerm);
+                }
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function(products) {
+                        renderProductTableForOperations(products, tableId, noResultsId);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Erro ao buscar produtos para operações:', xhr.responseText);
+                        $('#' + noResultsId).text('Erro ao carregar produtos.').show();
+                        $('#' + tableId).empty();
+                    }
+                });
+            }
+
+            // Função para renderizar a tabela de produtos para depósito/retirada
+            function renderProductTableForOperations(data, tableId, noResultsId) {
                 var tableBody = $('#' + tableId);
                 tableBody.empty();
                 if (data.length === 0) {
-                    $('#' + noResultsId).show();
+                    $('#' + noResultsId).text('Nenhum produto encontrado.').show();
                     return;
                 }
                 $('#' + noResultsId).hide();
 
                 $.each(data, function(index, product) {
-                    var row = '<tr data-id="' + product.id + '" data-name="' + product.name + '" data-quantity="' + product.quantity + '" data-average-price="' + product.averagePrice + '" data-sale-price="' + product.salePrice + '">' +
+                    var row = '<tr data-id="' + product.id + '" data-name="' + product.nome + '" data-quantity="' + product.quantidade + '" data-average-price="' + product.precoMedio + '" data-sale-price="' + product.precoVenda + '">' +
                         '<td data-label="ID">' + product.id + '</td>' +
-                        '<td data-label="Nome do Produto">' + product.name + '</td>' +
-                        '<td data-label="Código">' + product.code + '</td>' +
-                        '<td data-label="Quantidade Atual">' + product.quantity + '</td>' +
+                        '<td data-label="Nome do Produto">' + product.nome + '</td>' +
+                        '<td data-label="Código">' + product.codigo + '</td>' +
+                        '<td data-label="Quantidade Atual">' + product.quantidade + '</td>' +
                         '</tr>';
                     tableBody.append(row);
                 });
@@ -808,7 +820,7 @@
 
                 $('#withdraw-selected-product-name').text($(this).data('name'));
                 $('#withdraw-selected-product-id').text(selectedProductId);
-                $('#withdraw-average-price').text($(this).data('average-price').toFixed(2));
+                $('#withdraw-average-price').text(selectedProductAveragePrice.toFixed(2)); // Use precoMedio
                 $('#withdraw-sale-price').text(selectedProductSalePrice.toFixed(2));
                 $('#withdraw-selected-product').show();
                 $('#withdraw-form').show();
@@ -816,21 +828,13 @@
 
             // Lógica de pesquisa/filtro
             $('#deposit-search-btn').on('click', function() {
-                var searchTerm = $('#deposit-search-input').val().toLowerCase();
-                var filteredProducts = products.filter(function(product) {
-                    return product.name.toLowerCase().includes(searchTerm) ||
-                           String(product.id).includes(searchTerm);
-                });
-                renderProductTable(filteredProducts, 'deposit-product-table-body', 'deposit-no-results');
+                var searchTerm = $('#deposit-search-input').val();
+                fetchAndRenderProductsForOperations('deposit-product-table-body', 'deposit-no-results', searchTerm);
             });
 
             $('#withdraw-search-btn').on('click', function() {
-                var searchTerm = $('#withdraw-search-input').val().toLowerCase();
-                var filteredProducts = products.filter(function(product) {
-                    return product.name.toLowerCase().includes(searchTerm) ||
-                           String(product.id).includes(searchTerm);
-                });
-                renderProductTable(filteredProducts, 'withdraw-product-table-body', 'withdraw-no-results');
+                var searchTerm = $('#withdraw-search-input').val();
+                fetchAndRenderProductsForOperations('withdraw-product-table-body', 'withdraw-no-results', searchTerm);
             });
 
             // Permite pesquisar ao pressionar Enter
@@ -839,8 +843,8 @@
 
 
             // Inicializa as tabelas
-            renderProductTable(products, 'deposit-product-table-body', 'deposit-no-results');
-            renderProductTable(products, 'withdraw-product-table-body', 'withdraw-no-results');
+            fetchAndRenderProductsForOperations('deposit-product-table-body', 'deposit-no-results');
+            fetchAndRenderProductsForOperations('withdraw-product-table-body', 'withdraw-no-results');
 
             // Lógica de alternar operações
             $('#deposit-btn').on('click', function() {
@@ -927,19 +931,34 @@
                     var depositQuantity = parseInt($('#deposit-quantity').val());
                     var depositPrice = parseFloat($('#deposit-purchase-price').val());
 
-                    // Lógica de depósito (simulada)
-                    var productIndex = products.findIndex(p => p.id === selectedProductId);
-                    if (productIndex !== -1) {
-                        products[productIndex].quantity += depositQuantity;
-                        // Atualizar preço médio e de venda aqui seria lógica de backend
-                        $('#message-area').text('Depósito de ' + depositQuantity + ' unidades de "' + products[productIndex].name + '" realizado com sucesso!').css('background-color', '#d4edda').css('color', '#155724').show();
-                        renderProductTable(products, 'deposit-product-table-body', 'deposit-no-results');
-                        renderProductTable(products, 'withdraw-product-table-body', 'withdraw-no-results'); // Atualiza a outra tabela também
-                        $('#deposit-form')[0].reset();
-                        $('.selected-product-info').hide();
-                        $('#deposit-form').hide();
-                        $('.error-message').hide();
-                    }
+                    $.ajax({
+                        url: '/api/produtos/' + selectedProductId + '/depositar',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ quantidade: depositQuantity, precoCompra: depositPrice }),
+                        success: function(response) {
+                            $('#message-area').text('Depósito de ' + depositQuantity + ' unidades de "' + response.nome + '" realizado com sucesso!').css('background-color', '#d4edda').css('color', '#155724').show();
+                            $('#deposit-form')[0].reset();
+                            $('.selected-product-info').hide();
+                            $('#deposit-form').hide();
+                            $('.error-message').hide();
+                            // Atualiza as tabelas após o depósito
+                            fetchAndRenderProductsForOperations('deposit-product-table-body', 'deposit-no-results');
+                            fetchAndRenderProductsForOperations('withdraw-product-table-body', 'withdraw-no-results');
+                            // Atualiza a tabela do dashboard também
+                            fetchAndRenderProducts();
+                        },
+                        error: function(xhr, status, error) {
+                            let errorMessage = 'Erro ao realizar depósito.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            } else if (xhr.responseText) {
+                                errorMessage = xhr.responseText; // Em caso de erro 400 do backend
+                            }
+                            $('#message-area').text(errorMessage).css('background-color', '#f8d7da').css('color', '#721c24').show();
+                            console.error('Erro na requisição POST depósito:', xhr.responseText);
+                        }
+                    });
                 } else {
                     $('#message-area').text('Por favor, corrija os erros no formulário de depósito.').css('background-color', '#f8d7da').css('color', '#721c24').show();
                 }
@@ -976,30 +995,47 @@
                 }
 
                 if (isValid) {
-                    // Lógica de retirada (simulada)
-                    var productIndex = products.findIndex(p => p.id === selectedProductId);
-                    if (productIndex !== -1) {
-                        products[productIndex].quantity -= withdrawQuantity;
-
-                        var finalPrice = selectedProductSalePrice;
-                        if (applyDiscount) {
-                            var discountVal = parseFloat($('#discount-value').val());
-                            if (discountType === 'percentage') {
-                                finalPrice = finalPrice * (1 - (discountVal / 100));
-                            } else { // amount
-                                finalPrice = finalPrice - discountVal;
+                    $.ajax({
+                        url: '/api/produtos/' + selectedProductId + '/retirar',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ quantidade: withdrawQuantity }),
+                        success: function(response) {
+                            let finalPriceMessage = '';
+                            if (applyDiscount) {
+                                var discountVal = parseFloat($('#discount-value').val());
+                                var calculatedFinalPrice = selectedProductSalePrice;
+                                if (discountType === 'percentage') {
+                                    calculatedFinalPrice = calculatedFinalPrice * (1 - (discountVal / 100));
+                                } else { // amount
+                                    calculatedFinalPrice = calculatedFinalPrice - discountVal;
+                                }
+                                finalPriceMessage = ' Preço Final: R$ ' + calculatedFinalPrice.toFixed(2);
                             }
-                        }
 
-                        $('#message-area').text('Retirada de ' + withdrawQuantity + ' unidades de "' + products[productIndex].name + '" realizada com sucesso! Preço Final: R$ ' + finalPrice.toFixed(2)).css('background-color', '#d4edda').css('color', '#155724').show();
-                        renderProductTable(products, 'deposit-product-table-body', 'deposit-no-results');
-                        renderProductTable(products, 'withdraw-product-table-body', 'withdraw-no-results');
-                        $('#withdraw-form')[0].reset();
-                        $('#apply-discount').prop('checked', false).change(); // Desativa o desconto
-                        $('.selected-product-info').hide();
-                        $('#withdraw-form').hide();
-                        $('.error-message').hide();
-                    }
+                            $('#message-area').text('Retirada de ' + withdrawQuantity + ' unidades de "' + response.nome + '" realizada com sucesso!' + finalPriceMessage).css('background-color', '#d4edda').css('color', '#155724').show();
+                            $('#withdraw-form')[0].reset();
+                            $('#apply-discount').prop('checked', false).change(); // Desativa o desconto
+                            $('.selected-product-info').hide();
+                            $('#withdraw-form').hide();
+                            $('.error-message').hide();
+                            // Atualiza as tabelas após a retirada
+                            fetchAndRenderProductsForOperations('deposit-product-table-body', 'deposit-no-results');
+                            fetchAndRenderProductsForOperations('withdraw-product-table-body', 'withdraw-no-results');
+                            // Atualiza a tabela do dashboard também
+                            fetchAndRenderProducts();
+                        },
+                        error: function(xhr, status, error) {
+                            let errorMessage = 'Erro ao realizar retirada.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            } else if (xhr.responseText) {
+                                errorMessage = xhr.responseText; // Em caso de erro 400 do backend
+                            }
+                            $('#message-area').text(errorMessage).css('background-color', '#f8d7da').css('color', '#721c24').show();
+                            console.error('Erro na requisição POST retirada:', xhr.responseText);
+                        }
+                    });
                 } else {
                     $('#message-area').text('Por favor, corrija os erros no formulário de retirada.').css('background-color', '#f8d7da').css('color', '#721c24').show();
                 }

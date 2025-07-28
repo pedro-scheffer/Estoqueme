@@ -485,8 +485,7 @@
             // Lógica do Logout (apenas para simulação, pois não há login real)
             $('#logout-btn').on('click', function(event) {
                 event.preventDefault();
-                // Não há logout real, apenas redireciona para a página inicial (Dashboard)
-                window.location.href = '/dashboard';
+                window.location.href = '/dashboard'; // Redireciona para a página inicial (Dashboard)
                 alert('Simulação de "Sair" - No projeto real, isso faria logout.');
             });
 
@@ -495,21 +494,33 @@
                 $('#sidebar').toggleClass('collapsed');
             });
 
-            // Dados de produtos de exemplo (mock)
-            var products = [
-                { id: 1, name: 'Teclado Mecânico', code: 'KM001', quantity: 50, price: 250.00 },
-                { id: 2, name: 'Mouse Gamer RGB', code: 'MG002', quantity: 120, price: 120.50 },
-                { id: 3, name: 'Monitor Ultrawide 29"', code: 'MU003', quantity: 30, price: 999.99 },
-                { id: 4, name: 'Webcam Full HD', code: 'WH004', quantity: 80, price: 150.00 },
-                { id: 5, name: 'Fone de Ouvido Bluetooth', code: 'FB005', quantity: 200, price: 85.75 }
-            ];
+            // Função para buscar e renderizar produtos da API
+            function fetchAndRenderProducts(searchTerm = '') {
+                let url = '/api/produtos';
+                if (searchTerm) {
+                    url += '/search?term=' + encodeURIComponent(searchTerm);
+                }
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function(products) {
+                        renderProductTable(products);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Erro ao buscar produtos:', xhr.responseText);
+                        $('#no-results').text('Erro ao carregar produtos.').show();
+                        $('#product-table-body').empty();
+                    }
+                });
+            }
 
             // Função para renderizar a tabela de produtos
             function renderProductTable(data) {
                 var tableBody = $('#product-table-body');
                 tableBody.empty(); // Limpa a tabela existente
                 if (data.length === 0) {
-                    $('#no-results').show();
+                    $('#no-results').text('Nenhum produto encontrado.').show();
                     return;
                 }
                 $('#no-results').hide();
@@ -517,26 +528,22 @@
                 $.each(data, function(index, product) {
                     var row = '<tr>' +
                         '<td data-label="ID">' + product.id + '</td>' +
-                        '<td data-label="Nome do Produto">' + product.name + '</td>' +
-                        '<td data-label="Código">' + product.code + '</td>' +
-                        '<td data-label="Quantidade">' + product.quantity + '</td>' +
-                        '<td data-label="Preço de Venda">R$ ' + product.price.toFixed(2) + '</td>' +
+                        '<td data-label="Nome do Produto">' + product.nome + '</td>' + // Usar 'nome' da entidade
+                        '<td data-label="Código">' + product.codigo + '</td>' + // Usar 'codigo' da entidade
+                        '<td data-label="Quantidade">' + product.quantidade + '</td>' +
+                        '<td data-label="Preço de Venda">R$ ' + product.precoVenda.toFixed(2) + '</td>' + // Usar 'precoVenda' da entidade
                         '</tr>';
                     tableBody.append(row);
                 });
             }
 
             // Renderiza a tabela inicialmente com todos os produtos
-            renderProductTable(products);
+            fetchAndRenderProducts();
 
             // Lógica de pesquisa/filtro
             $('#search-btn').on('click', function() {
-                var searchTerm = $('#search-input').val().toLowerCase();
-                var filteredProducts = products.filter(function(product) {
-                    return product.name.toLowerCase().includes(searchTerm) ||
-                           String(product.id).includes(searchTerm);
-                });
-                renderProductTable(filteredProducts);
+                var searchTerm = $('#search-input').val();
+                fetchAndRenderProducts(searchTerm);
             });
 
             // Permite pesquisar ao pressionar Enter no campo de busca

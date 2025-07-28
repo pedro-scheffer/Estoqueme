@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.3</version>
+        <version>3.5.3</version> <!-- Mantendo a versão 3.5.3 que você está usando -->
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.estoqueme</groupId>
@@ -56,6 +56,21 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- NOVAS DEPENDÊNCIAS PARA ATIVIDADE 3 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <!-- CORREÇÃO: MySQL Connector/J artifacts moved to reverse-DNS compliant Maven 2+ coordinates. -->
+        <dependency>
+            <groupId>com.mysql</groupId> <!-- Alterado de 'mysql' para 'com.mysql' -->
+            <artifactId>mysql-connector-j</artifactId> <!-- Alterado de 'mysql-connector-java' para 'mysql-connector-j' -->
+            <version>8.0.33</version> <!-- Mantenha a versão -->
+            <scope>runtime</scope>
+        </dependency>
+        <!-- FIM DAS NOVAS DEPENDÊNCIAS -->
+
     </dependencies>
 
     <build>
@@ -87,5 +102,7 @@
             </plugin>
         </plugins>
     </build>
+
+    <packaging>jar</packaging>
 
 </project>

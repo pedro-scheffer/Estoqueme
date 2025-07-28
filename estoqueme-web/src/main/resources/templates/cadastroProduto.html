@@ -383,40 +383,40 @@
                 <div class="form-grid">
                     <div class="input-group">
                         <label for="product-name">Nome do Produto:</label>
-                        <input type="text" id="product-name" name="productName" required>
+                        <input type="text" id="product-name" name="nome" required>
                         <p class="error-message" id="error-product-name" style="display:none;">Nome do produto é obrigatório.</p>
                     </div>
                     <div class="input-group">
                         <label for="product-code">Código:</label>
-                        <input type="text" id="product-code" name="productCode" required>
+                        <input type="text" id="product-code" name="codigo" required>
                         <p class="error-message" id="error-product-code" style="display:none;">Código é obrigatório.</p>
                     </div>
                     <div class="input-group">
                         <label for="quantity">Quantidade:</label>
-                        <input type="number" id="quantity" name="quantity" min="0" required>
+                        <input type="number" id="quantity" name="quantidade" min="0" required>
                         <p class="error-message" id="error-quantity" style="display:none;">Quantidade deve ser um número positivo.</p>
                     </div>
                     <div class="input-group">
                         <label for="last-purchase-price">Preço Unitário Última Compra (R$):</label>
-                        <input type="number" id="last-purchase-price" name="lastPurchasePrice" step="0.01" min="0" required>
+                        <input type="number" id="last-purchase-price" name="precoUltimaCompra" step="0.01" min="0" required>
                         <p class="error-message" id="error-last-purchase-price" style="display:none;">Preço de compra é obrigatório e deve ser positivo.</p>
                     </div>
                     <div class="input-group">
                         <label for="average-price">Preço Médio (R$):</label>
-                        <input type="number" id="average-price" name="averagePrice" step="0.01" min="0" readonly>
+                        <input type="number" id="average-price" name="precoMedio" step="0.01" min="0" readonly>
                     </div>
                     <div class="input-group">
                         <label for="profit-percentage">Margem de Lucro (%):</label>
-                        <input type="number" id="profit-percentage" name="profitPercentage" required> <!-- REMOVIDO min="0" max="100" -->
+                        <input type="number" id="profit-percentage" name="porcentagemLucro" required>
                         <p class="error-message" id="error-profit-percentage" style="display:none;">Margem de lucro é obrigatória e deve ser um número.</p>
                     </div>
                     <div class="input-group">
                         <label for="sale-price">Preço de Venda (R$):</label>
-                        <input type="number" id="sale-price" name="salePrice" step="0.01" min="0" readonly>
+                        <input type="number" id="sale-price" name="precoVenda" step="0.01" min="0" readonly>
                     </div>
                     <div class="input-group">
                         <label for="product-type">Tipo de Produto:</label>
-                        <select id="product-type" name="productType" required>
+                        <select id="product-type" name="tipoProduto" required>
                             <option value="">Selecione</option>
                             <option value="eletronico">Eletrônico</option>
                             <option value="vestuario">Vestuário</option>
@@ -427,17 +427,17 @@
                     </div>
                     <div class="input-group">
                         <label for="brand">Marca:</label>
-                        <input type="text" id="brand" name="brand" required>
+                        <input type="text" id="brand" name="marca" required>
                         <p class="error-message" id="error-brand" style="display:none;">Marca é obrigatória.</p>
                     </div>
                     <div class="input-group">
                         <label for="category">Categoria:</label>
-                        <input type="text" id="category" name="category" required>
+                        <input type="text" id="category" name="categoria" required>
                         <p class="error-message" id="error-category" style="display:none;">Categoria é obrigatória.</p>
                     </div>
                     <div class="input-group full-width">
                         <label for="description">Descrição:</label>
-                        <textarea id="description" name="description" rows="4"></textarea>
+                        <textarea id="description" name="descricao" rows="4"></textarea>
                     </div>
                 </div>
                 <button type="submit">Cadastrar Produto</button>
@@ -528,7 +528,6 @@
                 return parseFloat(value) > 0;
             }
 
-            // FUNÇÃO DE VALIDAÇÃO DA MARGEM DE LUCRO AJUSTADA
             function isValidProfitPercentage(value) {
                 var num = parseFloat(value);
                 return !isNaN(num); // Apenas verifica se é um número válido, sem limites
@@ -538,7 +537,6 @@
                 var lastPurchasePrice = parseFloat($('#last-purchase-price').val());
                 var profitPercentage = parseFloat($('#profit-percentage').val());
 
-                // Ajuste na condição para cálculo, apenas verifica se são números válidos
                 if (!isNaN(lastPurchasePrice) && lastPurchasePrice >= 0 && !isNaN(profitPercentage)) {
                     var averagePrice = lastPurchasePrice; // Por enquanto, preço médio = última compra
                     var salePrice = averagePrice * (1 + (profitPercentage / 100));
@@ -553,7 +551,7 @@
 
             $('#last-purchase-price, #profit-percentage').on('input', calculatePrices);
 
-            // Validação do Formulário de Cadastro de Produtos
+            // Submissão do Formulário de Cadastro de Produtos para a API
             $('#product-registration-form').submit(function(event) {
                 event.preventDefault();
 
@@ -563,7 +561,6 @@
                 isValid = validateField('product-code', 'error-product-code', isNotEmpty, 'Código é obrigatório.') && isValid;
                 isValid = validateField('quantity', 'error-quantity', isPositiveNumber, 'Quantidade deve ser um número positivo.') && isValid;
                 isValid = validateField('last-purchase-price', 'error-last-purchase-price', isPositiveNumber, 'Preço de compra é obrigatório e deve ser positivo.') && isValid;
-                // VALIDAÇÃO DA MARGEM DE LUCRO ATUALIZADA
                 isValid = validateField('profit-percentage', 'error-profit-percentage', isValidProfitPercentage, 'Margem de lucro é obrigatória e deve ser um número.') && isValid;
                 isValid = validateField('product-type', 'error-product-type', isNotEmpty, 'Tipo de produto é obrigatório.') && isValid;
                 isValid = validateField('brand', 'error-brand', isNotEmpty, 'Marca é obrigatória.') && isValid;
@@ -571,26 +568,44 @@
 
                 if (isValid) {
                     var productData = {
-                        productName: $('#product-name').val(),
-                        productCode: $('#product-code').val(),
-                        quantity: parseInt($('#quantity').val()),
-                        lastPurchasePrice: parseFloat($('#last-purchase-price').val()),
-                        averagePrice: parseFloat($('#average-price').val()),
-                        profitPercentage: parseFloat($('#profit-percentage').val()), // Agora pode ser qualquer número
-                        salePrice: parseFloat($('#sale-price').val()),
-                        productType: $('#product-type').val(),
-                        brand: $('#brand').val(),
-                        category: $('#category').val(),
-                        description: $('#description').val()
+                        nome: $('#product-name').val(),
+                        codigo: $('#product-code').val(),
+                        quantidade: parseInt($('#quantity').val()),
+                        precoUltimaCompra: parseFloat($('#last-purchase-price').val()),
+                        precoMedio: parseFloat($('#average-price').val()), // Enviado, mas o backend recalcula
+                        porcentagemLucro: parseFloat($('#profit-percentage').val()),
+                        precoVenda: parseFloat($('#sale-price').val()), // Enviado, mas o backend recalcula
+                        tipoProduto: $('#product-type').val(),
+                        marca: $('#brand').val(),
+                        categoria: $('#category').val(),
+                        descricao: $('#description').val()
                     };
 
-                    // Simula o envio de dados (sem backend)
-                    console.log('Produto a ser cadastrado:', productData);
-                    $('#message-area').text('Produto "' + productData.productName + '" cadastrado com sucesso!').css('background-color', '#d4edda').css('color', '#155724').show();
-                    $('#product-registration-form')[0].reset(); // Limpa o formulário
-                    $('#average-price').val(''); // Limpa campos calculados
-                    $('#sale-price').val('');
-                    $('.error-message').hide(); // Esconde mensagens de erro
+                    $.ajax({
+                        url: '/api/produtos', // Endpoint para criar produto
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(productData),
+                        success: function(response) {
+                            $('#message-area').text('Produto "' + response.nome + '" cadastrado com sucesso!').css('background-color', '#d4edda').css('color', '#155724').show();
+                            $('#product-registration-form')[0].reset(); // Limpa o formulário
+                            $('#average-price').val(''); // Limpa campos calculados
+                            $('#sale-price').val('');
+                            $('.error-message').hide(); // Esconde mensagens de erro
+                        },
+                        error: function(xhr, status, error) {
+                            let errorMessage = 'Erro ao cadastrar produto.';
+                            if (xhr.status === 409) { // Conflict
+                                errorMessage = 'Erro: Já existe um produto com este código.';
+                            } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            } else {
+                                errorMessage += ' Detalhes: ' + xhr.responseText;
+                            }
+                            $('#message-area').text(errorMessage).css('background-color', '#f8d7da').css('color', '#721c24').show();
+                            console.error('Erro na requisição POST:', xhr.responseText);
+                        }
+                    });
                 } else {
                     $('#message-area').text('Por favor, corrija os erros no formulário.').css('background-color', '#f8d7da').css('color', '#721c24').show();
                 }
