@@ -151,6 +151,9 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+            border: none;
+            cursor: pointer;
         }
         .operation-buttons button.active {
             background-color: #007bff;
@@ -756,9 +759,11 @@
                 $('#sidebar').toggleClass('collapsed');
             });
 
+            // Variáveis globais para o produto selecionado
             var selectedProductId = null;
             var selectedProductQuantity = 0;
             var selectedProductSalePrice = 0;
+            var selectedProductAveragePrice = 0; // Adicionado: Variável para Preço Médio
 
             // Função para buscar e renderizar produtos da API para tabelas de Depósito/Retirada
             function fetchAndRenderProductsForOperations(tableId, noResultsId, searchTerm = '') {
@@ -811,19 +816,30 @@
                 selectedProductId = $(this).data('id');
                 selectedProductQuantity = $(this).data('quantity');
                 selectedProductSalePrice = $(this).data('sale-price');
+                selectedProductAveragePrice = $(this).data('average-price'); // Corrigido: Atribuindo o valor do data-attribute
 
-                // Atualiza info de produto selecionado
-                $('#deposit-selected-product-name').text($(this).data('name'));
-                $('#deposit-selected-product-id').text(selectedProductId);
-                $('#deposit-selected-product').show();
-                $('#deposit-form').show();
+                console.log("Produto Selecionado:");
+                console.log("ID:", selectedProductId);
+                console.log("Nome:", $(this).data('name'));
+                console.log("Quantidade:", selectedProductQuantity);
+                console.log("Preço Médio:", selectedProductAveragePrice);
+                console.log("Preço Venda:", selectedProductSalePrice);
 
-                $('#withdraw-selected-product-name').text($(this).data('name'));
-                $('#withdraw-selected-product-id').text(selectedProductId);
-                $('#withdraw-average-price').text(selectedProductAveragePrice.toFixed(2)); // Use precoMedio
-                $('#withdraw-sale-price').text(selectedProductSalePrice.toFixed(2));
-                $('#withdraw-selected-product').show();
-                $('#withdraw-form').show();
+
+                // Atualiza info de produto selecionado na seção ativa
+                if ($('#deposit-section').hasClass('active')) {
+                    $('#deposit-selected-product-name').text($(this).data('name'));
+                    $('#deposit-selected-product-id').text(selectedProductId);
+                    $('#deposit-selected-product').show();
+                    $('#deposit-form').show();
+                } else if ($('#withdraw-section').hasClass('active')) {
+                    $('#withdraw-selected-product-name').text($(this).data('name'));
+                    $('#withdraw-selected-product-id').text(selectedProductId);
+                    $('#withdraw-average-price').text(selectedProductAveragePrice.toFixed(2));
+                    $('#withdraw-sale-price').text(selectedProductSalePrice.toFixed(2));
+                    $('#withdraw-selected-product').show();
+                    $('#withdraw-form').show();
+                }
             });
 
             // Lógica de pesquisa/filtro
@@ -1023,7 +1039,10 @@
                             fetchAndRenderProductsForOperations('deposit-product-table-body', 'deposit-no-results');
                             fetchAndRenderProductsForOperations('withdraw-product-table-body', 'withdraw-no-results');
                             // Atualiza a tabela do dashboard também
-                            fetchAndRenderProducts();
+                            // A função fetchAndRenderProducts() não está definida neste escopo.
+                            // Se você deseja atualizar a tabela do dashboard, precisará chamar uma função que faça isso.
+                            // Por exemplo, se você tem uma função global para o dashboard, chame-a aqui.
+                            // fetchAndRenderProducts(); // Descomente e ajuste se necessário
                         },
                         error: function(xhr, status, error) {
                             let errorMessage = 'Erro ao realizar retirada.';
