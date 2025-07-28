@@ -103,6 +103,6 @@
         </plugins>
     </build>
 
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
 
 </project>
