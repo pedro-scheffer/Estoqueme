@@ -407,8 +407,8 @@
                     </div>
                     <div class="input-group">
                         <label for="profit-percentage">Margem de Lucro (%):</label>
-                        <input type="number" id="profit-percentage" name="profitPercentage" min="0" max="100" required>
-                        <p class="error-message" id="error-profit-percentage" style="display:none;">Margem de lucro deve ser entre 0 e 100.</p>
+                        <input type="number" id="profit-percentage" name="profitPercentage" required> <!-- REMOVIDO min="0" max="100" -->
+                        <p class="error-message" id="error-profit-percentage" style="display:none;">Margem de lucro é obrigatória e deve ser um número.</p>
                     </div>
                     <div class="input-group">
                         <label for="sale-price">Preço de Venda (R$):</label>
@@ -528,18 +528,18 @@
                 return parseFloat(value) > 0;
             }
 
-            function isPercentage(value) {
-                var num = parseInt(value);
-                return num >= 0 && num <= 100;
+            // FUNÇÃO DE VALIDAÇÃO DA MARGEM DE LUCRO AJUSTADA
+            function isValidProfitPercentage(value) {
+                var num = parseFloat(value);
+                return !isNaN(num); // Apenas verifica se é um número válido, sem limites
             }
 
             function calculatePrices() {
                 var lastPurchasePrice = parseFloat($('#last-purchase-price').val());
                 var profitPercentage = parseFloat($('#profit-percentage').val());
 
-                if (!isNaN(lastPurchasePrice) && lastPurchasePrice >= 0 &&
-                    !isNaN(profitPercentage) && profitPercentage >= 0 && profitPercentage <= 100) {
-
+                // Ajuste na condição para cálculo, apenas verifica se são números válidos
+                if (!isNaN(lastPurchasePrice) && lastPurchasePrice >= 0 && !isNaN(profitPercentage)) {
                     var averagePrice = lastPurchasePrice; // Por enquanto, preço médio = última compra
                     var salePrice = averagePrice * (1 + (profitPercentage / 100));
 
@@ -563,7 +563,8 @@
                 isValid = validateField('product-code', 'error-product-code', isNotEmpty, 'Código é obrigatório.') && isValid;
                 isValid = validateField('quantity', 'error-quantity', isPositiveNumber, 'Quantidade deve ser um número positivo.') && isValid;
                 isValid = validateField('last-purchase-price', 'error-last-purchase-price', isPositiveNumber, 'Preço de compra é obrigatório e deve ser positivo.') && isValid;
-                isValid = validateField('profit-percentage', 'error-profit-percentage', isPercentage, 'Margem de lucro deve ser entre 0 e 100.') && isValid;
+                // VALIDAÇÃO DA MARGEM DE LUCRO ATUALIZADA
+                isValid = validateField('profit-percentage', 'error-profit-percentage', isValidProfitPercentage, 'Margem de lucro é obrigatória e deve ser um número.') && isValid;
                 isValid = validateField('product-type', 'error-product-type', isNotEmpty, 'Tipo de produto é obrigatório.') && isValid;
                 isValid = validateField('brand', 'error-brand', isNotEmpty, 'Marca é obrigatória.') && isValid;
                 isValid = validateField('category', 'error-category', isNotEmpty, 'Categoria é obrigatória.') && isValid;
@@ -575,7 +576,7 @@
                         quantity: parseInt($('#quantity').val()),
                         lastPurchasePrice: parseFloat($('#last-purchase-price').val()),
                         averagePrice: parseFloat($('#average-price').val()),
-                        profitPercentage: parseInt($('#profit-percentage').val()),
+                        profitPercentage: parseFloat($('#profit-percentage').val()), // Agora pode ser qualquer número
                         salePrice: parseFloat($('#sale-price').val()),
                         productType: $('#product-type').val(),
                         brand: $('#brand').val(),
